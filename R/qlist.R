@@ -214,7 +214,38 @@ joinQ <- function(...) {
 #' @seealso \code{\link{alignK}}
 #' @export
 #' 
-mergeQ <- function(qlist) {
+# mergeQ <- function(qlist) {
+#   
+#   is.qlist(qlist)
+#   if(diff(range(as.integer(tabulateQ(qlist)$ind)))!=0) stop("mergeQ: Number of individuals differ between runs.")
+#   
+#   # Computes mean cell-wise across dataframes
+#   # x A list of numeric dataframes
+#   # 
+#   mergy <- function(x) {
+#     return(list(Reduce(`+`, x)/length(x)))
+#   }
+#   
+#   # if all runs have same K, merge as is
+#   if(diff(range(as.integer(tabulateQ(qlist)$k)))==0) {
+#     labels <- summariseQ(tabulateQ(qlist))$k
+#     x <- mergy(qlist)
+#     names(x) <- labels
+#   }else{
+#     # if runs have different K, split them and merge within sublists
+#     qlist <- sortQ(qlist)
+#     labels <- summariseQ(tabulateQ(qlist,sorttable=FALSE))$k
+#     x <- unlist(lapply(splitQ(qlist),mergy),recursive=FALSE)
+#     names(x) <- labels
+#   }
+#   
+#   return(as.qlist(x))
+# }
+
+
+# mergeQ fix----
+  # by Adien Taudiere Jan17 2024
+mergeQ2 <- function(qlist) {
   
   is.qlist(qlist)
   if(diff(range(as.integer(tabulateQ(qlist)$ind)))!=0) stop("mergeQ: Number of individuals differ between runs.")
@@ -233,7 +264,7 @@ mergeQ <- function(qlist) {
     names(x) <- labels
   }else{
     # if runs have different K, split them and merge within sublists
-    qlist <- sortQ(qlist)
+    qlist <- sortQ2(qlist)
     labels <- summariseQ(tabulateQ(qlist,sorttable=FALSE))$k
     x <- unlist(lapply(splitQ(qlist),mergy),recursive=FALSE)
     names(x) <- labels
@@ -241,6 +272,12 @@ mergeQ <- function(qlist) {
   
   return(as.qlist(x))
 }
+
+## end mergeQ fix----
+
+
+
+
 
 # splitQ -----------------------------------------------------------------------
 
@@ -307,7 +344,39 @@ splitQ <- function(qlist,by="k") {
 #' @export
 #' 
 # order by more than one by value
-sortQ <- function(qlist,by="k",decreasing=FALSE,debug=FALSE) {
+# sortQ <- function(qlist,by="k",decreasing=FALSE,debug=FALSE) {
+#   
+#   is.qlist(qlist)
+#   if(length(by)==0) stop("sortQ: Argument 'by' must not be length zero.")
+#   if(!is.character(by)) stop("sortQ: Argument 'by' must be a character.")
+#   if(!is.logical(decreasing)) stop("sortQ: Argument 'decreasing' must be a logical datatype.")
+#   
+#   fun1 <- function(x) as.matrix(unlist(attributes(x)))
+#   a <- lapply(qlist,fun1)
+#   if(debug) print(a)
+#   if(any(!sapply(a,function(x) any(grepl(paste0(by,collapse="|"),rownames(x)))))) {
+#     stop(paste0("One or more of the attributes provided in by (",by,") is missing in one or more runs. If 'ind' or 'k' is missing, use 'as.qlist()' to add them."))
+#   }
+#   
+#   # get df of attributes
+#   b <- as.data.frame(t(as.data.frame(lapply(a,function(x,y) x[y,],by),stringAsFactors=FALSE)),stringsAsFactors=FALSE)
+#   fun2 <- function(x) if(all(!is.na(as.numeric(as.character(x))))) {return(as.numeric(as.character(x)))}else{return(x)}
+#   b <- as.data.frame(sapply(b,fun2),stringAsFactors=FALSE)
+#   
+#   if(debug) {print(str(b)); print(b)}
+#   
+#   # order
+#   if(length(by)==1) ord <- order(b[,by,drop=FALSE])
+#   if(length(by)>1) ord <- do.call(order,b[,by,drop=FALSE])
+#   if(decreasing) ord <- rev(ord)
+#   # sort qlist
+#   return(qlist[ord])
+# }
+
+
+# sortQ fix----
+  # by Adien Taudiere Jan17 2024
+sortQ2 <- function(qlist,by="k",decreasing=FALSE,debug=FALSE) {
   
   is.qlist(qlist)
   if(length(by)==0) stop("sortQ: Argument 'by' must not be length zero.")
@@ -329,9 +398,14 @@ sortQ <- function(qlist,by="k",decreasing=FALSE,debug=FALSE) {
   if(debug) {print(str(b)); print(b)}
   
   # order
-  if(length(by)==1) ord <- order(b[,by,drop=FALSE])
-  if(length(by)>1) ord <- do.call(order,b[,by,drop=FALSE])
+  ord <- do.call(order,b[,by,drop=FALSE])
   if(decreasing) ord <- rev(ord)
   # sort qlist
   return(qlist[ord])
 }
+
+## end sortQ fix----
+
+
+
+
